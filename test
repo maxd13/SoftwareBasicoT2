@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc -Wall -Wa,--execstack -o testfile teste.c gera.c
