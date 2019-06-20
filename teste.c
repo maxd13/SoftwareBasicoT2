@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include "gera.h"
 
 void dump(FILE* dfile, void* p, int n){
@@ -9,21 +10,14 @@ void dump(FILE* dfile, void* p, int n){
     }
 }
 
-int main(int argc, char *argv[]) {
+void test(const char* program, int p1, int p2, int p3, int expected){
   FILE *myfp;
-  FILE *dfile;
   funcp funcaoSimples;
   int res;
 
   /* Abre o arquivo fonte */
-  if ((myfp = fopen("programa", "r")) == NULL) {
+  if ((myfp = fopen(program, "r")) == NULL) {
     perror("Falha na abertura do arquivo fonte");
-    exit(1);
-  }
-
-  /* Abre o arquivo de dump */
-  if ((dfile = fopen("dump", "w")) == NULL) {
-    perror("Falha na abertura do arquivo de dump");
     exit(1);
   }
 
@@ -31,12 +25,15 @@ int main(int argc, char *argv[]) {
   funcaoSimples = gera(myfp);
   fclose(myfp);
 
-  dump(dfile, funcaoSimples, 14);
-  fclose(dfile);
-
   /* chama a função */
-  //res = (*funcaoSimples) ();
-  //printf("result: %d\n", res);
-  //libera(funcaoSimples);
+  res = (*funcaoSimples) (p1, p2, p3);
+  libera(funcaoSimples);
+  assert(res == expected);
+}
+
+int main(int argc, char *argv[]) {
+  test("testes/t_fx=x+1", 0, 0, 0, 1);
+  test("testes/t_fx=x+1", 20, 50, 0, 21);
+  test("testes/t_fxy=x+y*x-y", 5, 3, 0, 16);
   return 0;
 }
