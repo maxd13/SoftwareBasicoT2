@@ -46,6 +46,10 @@ static unsigned char subbyte[2] = {0x83, 0xe8}; //sub ..., %eax
 static unsigned char subc = 0x2d;
 static unsigned char sub[3] = {0x2b, 0x45, 0xfc}; //sub -0x4(%rbp), %eax
 
+// iflez
+static unsigned char iflez[3]  = {0x83, 0x7d, 0xfc};
+static unsigned char iflez2[3] = {0x00, 0x0f, 0x8e};
+
 void append_cmd(void** buffer, unsigned char* cmd, unsigned char size, unsigned char var){
     if (size == 1){
       memcpy(*buffer, cmd, 1);
@@ -125,16 +129,29 @@ void svao(char op, void** buffer, unsigned char var){
   }
 }
 
+void support_iflez(void** buffer, unsigned char var, int offset){
+    append_cmd(buffer, iflez, 3, var);
+    append_cmd(buffer, iflez2, 3, 1);
+    cc(buffer, offset, 4);
+}
+
 funcp gera(FILE *f){
     int line = 1;
-    int c;
-    void* data = malloc(248); // nunca sera necessario mais do que 8 bytes por instrucao, 
+    int c, i;
+    // nunca serao necessarios mais do que 8 bytes por instrucao, 
     // e existem no maximo 30 instrucoes + 1 prologo de 8 bytes.
     // como a maioria das instrucoes sao bem menores do que 7 bytes, existe um espaco extra para
     // impedir qualquer eventual overflow.
-    void* buffer = data;
-    if(!data) error("nao foi possivel alocar memoria", -1);
+    void* data = malloc(248); 
+    void* buffer = data; // ponteiro que sera movido
+    int offset[30]; // vetor de offsets que marca o inicio de cada linha
+    char iflez_pos[30]; // vetor que marca que linhas sao iflez.
+
+    if(!data) error("nao foi possivel alocar memoria", 0);
     append_cmd(&buffer, prologo, 8, 1);
+    offset[0] = 0;
+    for(i = 0; i < 30; i++) iflez_pos[i] = 0;
+
     while ((c = fgetc(f)) != EOF) {
     switch (c) {
       case 'r': { /* retorno */
@@ -187,16 +204,31 @@ funcp gera(FILE *f){
       case 'i': { /* desvio condicional */
         char var0;
         int idx0, n;
-        if (fscanf(f, "flez %c%d %d", &var0, &idx0, &n) != 3)
-            error("comando invalido", line);
-          printf("%d iflez %c%d %d\n", line, var0, idx0, n);
+        if (fscanf(f, "flez %c%d %d", &var0, &idx0, &n) != 3) error("comando invalido", line);
+        if(var0 != 'v') error("comando invalido", line);
+        iflez_pos[line - 1] = 1;
+        // colocamos o numero de linha dentro do buffer por hora,
+        // para ser modificado depois
+        support_iflez(&buffer, idx0, n - 1); // -1 porque arrays comecam com 0...
         break;
       }
       default: error("comando desconhecido", line);
     }
-    line++;
+    offset[line++] = (char *) buffer - (char *) data;
     fscanf(f, " ");
   }
+
+  // corrige os jumps do iflez
+  int jmp;
+  for(i = 0; i < line; i++){
+    if(iflez_pos[i]){
+      buffer = data + offset[i] + 6; // posicao do offset do jump
+      memcpy(&jmp, buffer, 4);
+      jmp = offset[jmp] - offset[i+1]; // valor corrigido de offset = endereco do jump - endereco da prox instrucao.
+      memcpy(buffer, &jmp, 4); // coloca o novo valor na posicao do offset.
+    }
+  }
+
   return (funcp) data;
 }
 
