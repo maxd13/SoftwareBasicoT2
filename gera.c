@@ -125,7 +125,6 @@ void svao(char op, void** buffer, unsigned char var){
   }
 }
 
-
 funcp gera(FILE *f){
     int line = 1;
     int c;

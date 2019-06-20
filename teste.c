@@ -35,5 +35,7 @@ int main(int argc, char *argv[]) {
   test("testes/t_fx=x+1", 0, 0, 0, 1);
   test("testes/t_fx=x+1", 20, 50, 0, 21);
   test("testes/t_fxy=x+y*x-y", 5, 3, 0, 16);
+  test("testes/t_ret_ret", 0, 0, 0, 100);
+
   return 0;
 }
