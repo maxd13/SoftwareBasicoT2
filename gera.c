@@ -1,3 +1,4 @@
+/* Luiz Carlos Rumbelsperger Viana 1810936 3WA*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

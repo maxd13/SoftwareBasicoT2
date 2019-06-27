@@ -1,0 +1,42 @@
+Thu Jun 27 18:58:55 -03 2019
+Luiz Carlos Rumbelsperger Viana 1810936 3WA
+Segundo trabalho e Software Basico -- Gerador de codigo
+para a linguagem Simples.
+
+No presente trabalho implementamos um micro-compilador para a linguagem Simples.
+Este compilador, implementado no arquivo gera.c, foi testado por um arquivo
+teste.c, no qual e' implementada uma funcao de teste que
+recebe o nome de um arquivo e os seus parametros de execucao, converte o arquivo
+em uma funcao dinamicamente alocada em C, e a executa com os parametros passados,
+comparando o valor retornado com um valor esperado, por meio de um assert.
+
+A funcao main apenas chama a funcao de teste diversas vezes com diferentes arquivos
+e casos de teste, e caso todos os testes passem nada e' retornado para o standard output
+ou para o standard error, mas caso um teste falhe um erro padrao e' retornado pela falha do respectivo
+assert.
+
+Os arquivos de teste implementados foram aqueles exemplos apresentados na descricao do projeto,
+entre eles a funcao fatorial, e mais alguns outros poucos exemplos simples como:
+ret $100
+ret $20
+Que retorna 100, e serve para testar a interrupcao do programa no primeiro ret.
+Todos os casos de teste estao passando.
+
+No modulo static.s, constam todos os comandos assembly que foram utilizados como base para
+a descoberta dos codigos de maquina que dao suporte a' conversao da linguagem Simples em uma
+funcao executavel. Isto foi feito compilando o arquivo com gcc -c -o mcode static, e depois
+executando objdump -d mcode.
+
+A compilacao do projeto foi feito a partir de um arquivo
+executavel simples, chamado test, que serviu a funcao de makefile
+do projeto:
+
+#!/bin/bash
+gcc -Wall -Wa,--execstack -o testfile teste.c gera.c
+
+Em seguida marcamos o arquivo como executavel com chmod u+x test,
+e o executamos com ./test para compilar o projeto.
+
+Link para o github do projeto com todos os arquivos:
+https://github.com/maxd13/SoftwareBasicoT2
+
